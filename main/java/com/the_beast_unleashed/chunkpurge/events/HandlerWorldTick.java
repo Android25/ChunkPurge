@@ -2,8 +2,8 @@ package com.the_beast_unleashed.chunkpurge.events;
 
 import com.the_beast_unleashed.chunkpurge.ModChunkPurge;
 import com.the_beast_unleashed.chunkpurge.operators.WorldChunkUnloader;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraft.world.World;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class HandlerWorldTick
 	if(ModChunkPurge.config.enabled)
 	{
 		// Check which dimension is ticking
-		id = event.world.provider.dimensionId;
+		id = event.world.provider.getDimensionId();
 		// Has this dimension ticked before during this server session?
 		if(dim.contains(id))
 		// This is NOT the first tick of a new dimension

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.the_beast_unleashed.chunkpurge.ModChunkPurge;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -59,8 +60,8 @@ public class WorldChunkUnloader
 	private HashSet<ChunkCoordIntPair> groupedChunksFinder(HashSet<ChunkCoordIntPair> loadedChunks, ChunkCoordIntPair seed, int radiusLimit)
 	{
 		
-		LinkedList<ChunkCoordIntPair> queue = new LinkedList<>();
-		HashSet<ChunkCoordIntPair> groupedChunks = new HashSet<>();
+		LinkedList<ChunkCoordIntPair> queue = new LinkedList<ChunkCoordIntPair>();
+		HashSet<ChunkCoordIntPair> groupedChunks = new HashSet<ChunkCoordIntPair>();
 		
 		if (!loadedChunks.contains(seed)) return groupedChunks;
 		queue.add(seed);
@@ -130,21 +131,21 @@ public class WorldChunkUnloader
 	private void populateChunksToUnload()
 	{
 		
-		chunksToUnload = new HashSet<>();
+		chunksToUnload = new HashSet<ChunkCoordIntPair>();
 		
 		if (world.getChunkProvider() instanceof ChunkProviderServer)
 		{
 			// The set of chunks that are currently loaded in this world by all mechanisms.
-			HashSet<ChunkCoordIntPair> loadedChunks = new HashSet<>();
+			HashSet<ChunkCoordIntPair> loadedChunks = new HashSet<ChunkCoordIntPair>();
 			
 			// The set of chunks that are loaded as a result of players.
-			HashSet<ChunkCoordIntPair> playerLoadedChunks = new HashSet<>();
+			HashSet<ChunkCoordIntPair> playerLoadedChunks = new HashSet<ChunkCoordIntPair>();
 			// The set of chunks that are loaded due to chunk loading tickets.
-			HashSet<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
+			HashSet<ChunkCoordIntPair> forceLoadedChunks = new HashSet<ChunkCoordIntPair>();
 			// The set of chunks that are loaded as a result of the world spawn area.
-			HashSet<ChunkCoordIntPair> spawnLoadedChunks = new HashSet<>();
+			HashSet<ChunkCoordIntPair> spawnLoadedChunks = new HashSet<ChunkCoordIntPair>();
 			
-			List<EntityPlayerMP> listPlayers = world.playerEntities;
+			List<EntityPlayer> listPlayers = world.playerEntities;
 			
 			int radiusLimit;
 			
@@ -175,7 +176,7 @@ public class WorldChunkUnloader
 			
 			radiusLimit = (int) Math.ceil(PLAYER_RADIUS + PLAYER_LIMIT);
 			
-			for (EntityPlayerMP player : listPlayers)
+			for (EntityPlayer player : listPlayers)
 			{
 				
 				if (!(player instanceof FakePlayer))
@@ -199,12 +200,12 @@ public class WorldChunkUnloader
 			
 			radiusLimit = (int) Math.ceil(SPAWN_RADIUS + SPAWN_LIMIT);
 			
-			if (world.provider.canRespawnHere() && DimensionManager.shouldLoadSpawn(world.provider.dimensionId))
+			if (world.provider.canRespawnHere() && DimensionManager.shouldLoadSpawn(world.provider.getDimensionId()))
 			{
 
 				ChunkCoordIntPair spawnChunkCoords = new ChunkCoordIntPair(
-						(int) Math.floor(world.getSpawnPoint().posX / CHUNK_WIDTH),
-						(int) Math.floor(world.getSpawnPoint().posZ / CHUNK_WIDTH));
+						(int) Math.floor(world.getSpawnPoint().getX() / CHUNK_WIDTH),
+						(int) Math.floor(world.getSpawnPoint().getY() / CHUNK_WIDTH));
 				
 				spawnLoadedChunks.addAll(groupedChunksFinder(loadedChunks, spawnChunkCoords, radiusLimit));
 				
@@ -235,7 +236,7 @@ public class WorldChunkUnloader
 	
 	public void unloadChunks()
 	{
-		initialTime = MinecraftServer.getSystemTimeMillis();
+		initialTime = MinecraftServer.getCurrentTimeMillis();
 		
 		populateChunksToUnload();
 		
@@ -244,8 +245,10 @@ public class WorldChunkUnloader
 			
 			for (ChunkCoordIntPair coord : chunksToUnload)
 			{
-				
-				((ChunkProviderServer) this.world.getChunkProvider()).unloadChunksIfNotNearSpawn(coord.chunkXPos, coord.chunkZPos);
+				//((ChunkProviderServer) this.world.getChunkProvider()).unloadAllChunks();
+				//in source calling unload all chunks just calls this function anyways so
+				//this is probably what we want
+				((ChunkProviderServer) this.world.getChunkProvider()).dropChunk(coord.chunkXPos, coord.chunkZPos);
 			}
 			
 		}
@@ -254,8 +257,8 @@ public class WorldChunkUnloader
 		{
 			ModChunkPurge.log.log(Level.INFO, "Queued " + String.valueOf(chunksToUnload.size())
 					+ " chunks for unload in dimension " + this.world.provider.getDimensionName()
-					+ " (" + String.valueOf(this.world.provider.dimensionId)
-					+ ") in " + String.valueOf(MinecraftServer.getSystemTimeMillis() - this.initialTime)
+					+ " (" + String.valueOf(this.world.provider.getDimensionId())
+					+ ") in " + String.valueOf(MinecraftServer.getCurrentTimeMillis() - this.initialTime)
 					+ " milliseconds.");
 			
 		}

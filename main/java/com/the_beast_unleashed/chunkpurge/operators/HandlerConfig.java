@@ -5,7 +5,7 @@ import net.minecraftforge.common.config.Property;
 
 import java.io.File;
 
-import cpw.mods.fml.client.config.GuiConfig;
+import net.minecraftforge.fml.client.config.GuiConfig;
 
 public class HandlerConfig
 {
